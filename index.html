@@ -83,6 +83,7 @@ nav .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;height:
 .lvlx{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-top:4px}
 .sig{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:12px;border-bottom:1px solid var(--line);cursor:pointer}
 .sig:last-child{border-bottom:0}
+.sig .bars{margin-top:8px}
 .sig:active,.wk:active{background:var(--panel2)}
 .tags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .tag{font-size:.7rem;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--muted)}
@@ -306,6 +307,9 @@ function renderQuotes(){
   box.append(frag);
 }
 
+function prev10(t){const c=C&&C.w[t];if(!c||!c.y||c.y.length<12)return null;
+  const today=N?N.czas.slice(0,10):"";const y=(c.yd&&c.yd[1]===today)?c.y.slice(-12,-1):c.y.slice(-11);
+  const out=[];for(let i=1;i<y.length;i++)out.push({r:y[i]/y[i-1]-1});return out}
 function renderDrops(){
   const b=$("#panic"),box=$("#drops");box.textContent="";
   if(!S){b.textContent="Brak danych skanu.";return}
@@ -325,7 +329,11 @@ function renderDrops(){
     const tg=el("div","tags");tg.append(el("span","tag",s.klasa==="duza"?"duża spółka":"mała spółka"),el("span","tag",big(s.kap_mln)));
     if(s.przebil_6)tg.append(el("span","tag bad","przebił −6%"));
     if(S.nowe&&S.nowe.includes(s.ticker))tg.append(el("span","tag acc","nowy"));
-    r.append(nm,px,tg);box.append(r);
+    r.append(nm,px,tg);
+    const ses=prev10(s.ticker);if(ses){const plus=ses.filter(x=>x.r>0).length,tot=ses.reduce((a,x)=>a*(1+x.r),1)-1;
+      const lab=el("div","wsum");lab.append(el("span","tag","10 sesji przed dziś:"),el("span","tag good",plus+" na plusie"),el("span","tag bad",(ses.length-plus)+" na minusie"),el("span","tag "+(tot>=0?"good":"bad"),"razem "+pct(tot,1)));
+      r.append(bars10(ses),lab)}
+    box.append(r);
   }
 }
 
@@ -509,7 +517,7 @@ async function load(){
   const now=new Date(),h=now.getHours(),dw=now.getDay();$("#live").classList.toggle("on",!!N&&dw>0&&dw<6&&h>=9&&h<17);
   renderStrip();renderQuotes();renderDrops();renderEvents();renderWeak();renderMoje();
   C=await get("wykresy.json");renderQuotes();
-  const t=location.hash.slice(1);if(t&&bySym(t))openDetail(t);else if(cur)openDetail(cur);
+  renderDrops();const t=decodeURIComponent(location.hash.slice(1));if(TITLES[t]){document.querySelector('nav button[data-v="'+t+'"]')?.click();history.replaceState(null,"",location.pathname)}else if(t&&bySym(t))openDetail(t);else if(cur)openDetail(cur);
 }
 const TITLES={notowania:"Rynek",spadki:"Spadki",najslabsze:"Najsłabsze",wydarzenia:"Wydarzenia",moje:"Moje spółki"};
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
