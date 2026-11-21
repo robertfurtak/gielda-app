@@ -124,6 +124,9 @@ h1{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:1;
 .vdur b{font-family:var(--font-display);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
 @media (max-width:480px){.visit{grid-template-columns:1fr}}
 
+.wfield{grid-column:1/-1;border-top:1px solid var(--line);padding-top:10px}
+.weightrow{margin-top:12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-top:1px solid var(--line);padding-top:10px;font-size:13px;color:var(--muted)}
+.weightrow b{font-family:var(--font-display);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
 .status{font-size:12px;color:var(--muted);text-align:center}
 .status.warn{color:var(--accent)}
 
@@ -200,6 +203,7 @@ textarea{resize:vertical;min-height:60px}
       <div><b id="sSets">0</b><small>serie siłowe</small></div>
     </div>
     <div class="cats" id="cats"></div>
+    <div class="weightrow" id="weightRow" hidden></div>
   </section>
 
   <section id="daySec" style="display:flex;flex-direction:column;gap:10px;scroll-margin-top:12px" aria-label="Wybrany dzień">
@@ -211,6 +215,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="field"><label for="vInH">Wejście</label><div class="vrow"><div class="tsel"><select id="vInH" aria-label="Wejście – godzina"></select><b>:</b><select id="vInM" aria-label="Wejście – minuty"></select></div><button class="now" id="vInNow" type="button">Teraz</button><button class="clr" id="vInClr" type="button" aria-label="Wyczyść wejście">×</button></div></div>
       <div class="field"><label for="vOutH">Wyjście</label><div class="vrow"><div class="tsel"><select id="vOutH" aria-label="Wyjście – godzina"></select><b>:</b><select id="vOutM" aria-label="Wyjście – minuty"></select></div><button class="now" id="vOutNow" type="button">Teraz</button><button class="clr" id="vOutClr" type="button" aria-label="Wyczyść wyjście">×</button></div></div>
       <div class="vdur"><span id="vDurLabel">Czas na siłowni</span><b id="vDur">–</b></div>
+      <div class="field wfield"><label for="vW">Moja waga</label><div class="vrow"><div class="unit" style="flex:1"><input id="vW" type="text" inputmode="decimal" autocomplete="off" placeholder="np. 82,5"><span>kg</span></div><button class="clr" id="vWClr" type="button" aria-label="Wyczyść wagę">×</button></div><div class="derived" id="vWInfo"></div></div>
     </div>
     <div class="entries" id="entries"></div>
   </section>
@@ -224,7 +229,7 @@ textarea{resize:vertical;min-height:60px}
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
     </div>
     <p id="bkMsg" hidden></p>
-    <p>Wersja 8 · 21.11.2026</p>
+    <p>Wersja 9 · 21.11.2026</p>
   </section>
 </div>
 
@@ -348,7 +353,7 @@ function localStore(){
   return {
     async save(e){ const i=entries.findIndex(x=>x.id===e.id); if(i>=0) entries[i]=e; else entries.push(e); lsWrite(entries); render(); },
     async remove(id){ entries=entries.filter(x=>x.id!==id); lsWrite(entries); render(); },
-    async saveVisit(date,v){ if(v.in||v.out) visits[date]=v; else delete visits[date]; lsWriteV(); render(); },
+    async saveVisit(date,v){ if(v.in||v.out||v.w) visits[date]=v; else delete visits[date]; lsWriteV(); render(); },
     async saveCats(list){ customCats=list; try{ localStorage.setItem(LS_C, JSON.stringify(list)); }catch(e){} rebuildCats(); renderTabs(); render(); }
   };
 }
@@ -381,7 +386,7 @@ async function init(){
   }, ()=>{});
   store = {
     async saveCats(list){ customCats=list; rebuildCats(); renderTabs(); render(); await catDoc.set({list}); },
-    async saveVisit(date,v){ if(v.in||v.out) await vcol.doc(date).set(v); else await vcol.doc(date).delete(); },
+    async saveVisit(date,v){ if(v.in||v.out||v.w) await vcol.doc(date).set(v); else await vcol.doc(date).delete(); },
     async save(e){ const {id,...body}=e; await col.doc(id).set(body); },
     async remove(id){ await col.doc(id).delete(); }
   };
@@ -424,7 +429,7 @@ function renderSummary(map,y,mo){
   const month = entries.filter(e=>e.date.startsWith(prefix));
   const daySet = new Set(month.map(e=>e.date));
   let gymMin=0;
-  Object.keys(visits).forEach(k=>{ if(k.startsWith(prefix)){ daySet.add(k); const m=visitMin(visits[k]); if(m!=null) gymMin+=m; } });
+  Object.keys(visits).forEach(k=>{ if(k.startsWith(prefix)){ if(visits[k].in||visits[k].out) daySet.add(k); const m=visitMin(visits[k]); if(m!=null) gymMin+=m; } });
   const days = daySet.size;
   $("sumDays").textContent = (days===1 ? "1 dzień na siłowni" : days+" dni na siłowni") + (gymMin? " · "+Math.floor(gymMin/60)+":"+pad(gymMin%60)+" h" : "");
   let km=0,kcal=0,sec=0,sets=0; const per={};
@@ -440,6 +445,12 @@ function renderSummary(map,y,mo){
     const w = Math.max(4, Math.round(100*(p.kcal||0)/maxK));
     return '<div class="catrow"><span style="min-width:96px">'+esc(c.short)+'</span><span class="bar"><i style="width:'+w+'%;background:var('+c.color+')"></i></span><span class="v">'+v+'</span></div>';
   }).join("") || '<div class="note">W tym miesiącu nie ma jeszcze wpisów.</div>';
+  const wk=Object.keys(visits).filter(k=>k.startsWith(prefix)&&visits[k].w).sort();
+  if(wk.length){
+    const last=visits[wk[wk.length-1]].w, first=visits[wk[0]].w;
+    $("weightRow").innerHTML='<span>Waga</span><span><b>'+fmtNum(last,1)+' kg</b>'+(wk.length>1?' · '+fmtDelta(last-first)+' w tym miesiącu':'')+'</span>';
+    $("weightRow").hidden=false;
+  } else $("weightRow").hidden=true;
 }
 
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
@@ -450,6 +461,9 @@ function renderDay(map){
   $("dayTitle").textContent = (selected===today?"Dziś, "+dn:dn.charAt(0).toUpperCase()+dn.slice(1))+" "+d.getDate()+" "+MONTHS_GEN[d.getMonth()];
   const v=visits[selected]||{};
   setT("vIn",v.in); setT("vOut",v.out);
+  if(document.activeElement!==$("vW")) $("vW").value=v.w?String(v.w).replace(".",","):"";
+  const prevW=Object.keys(visits).filter(k=>k<selected&&visits[k].w).sort().pop();
+  $("vWInfo").textContent = (v.w&&prevW) ? "Zmiana od "+parseIso(prevW).getDate()+" "+MONTHS_GEN[parseIso(prevW).getMonth()]+": "+fmtDelta(v.w-visits[prevW].w) : (!v.w&&prevW ? "Ostatnio: "+fmtNum(visits[prevW].w,1)+" kg ("+parseIso(prevW).getDate()+" "+MONTHS_GEN[parseIso(prevW).getMonth()]+")" : "");
   const vm=visitMin(v);
   $("vDur").textContent = vm!=null ? Math.floor(vm/60)+" h "+pad(vm%60)+" min" : "–";
   $("vDurLabel").textContent = vm!=null ? "Czas na siłowni" : (v.in ? "Wpisz godzinę wyjścia, żeby policzyć czas" : "Czas na siłowni");
@@ -483,10 +497,12 @@ function renderDay(map){
 function toMin(t){ if(!t) return null; const [h,m]=t.split(":").map(Number); return h*60+m; }
 function visitMin(v){ if(!v) return null; const a=toMin(v.in), b=toMin(v.out); if(a==null||b==null) return null; let d=b-a; if(d<0) d+=1440; return d; }
 function nowHM(){ const d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
+function fmtDelta(d){ d=Math.round(d*10)/10; return (d>0?"+":d<0?"−":"±")+fmtNum(Math.abs(d),1)+" kg"; }
 async function saveVisit(){
-  const v={in:getT("vIn"), out:getT("vOut")};
+  const w=Math.round((+String($("vW").value).replace(",","."))*10)/10||0;
+  const v={in:getT("vIn"), out:getT("vOut")}; if(w) v.w=w;
   const old=visits[selected]||{};
-  if((old.in||"")===v.in && (old.out||"")===v.out) return;
+  if((old.in||"")===v.in && (old.out||"")===v.out && (old.w||0)===(v.w||0)) return;
   visits[selected]=v; render();
   if(!store) return;
   try{ await store.saveVisit(selected,v); }catch(e){ setStatus("Nie udało się zapisać godzin. Spróbuj jeszcze raz.", true); }
@@ -494,6 +510,8 @@ async function saveVisit(){
 function fillSel(id,n){ const o=['<option value="">--</option>']; for(let i=0;i<n;i++) o.push('<option value="'+pad(i)+'">'+pad(i)+'</option>'); $(id).innerHTML=o.join(""); }
 function getT(p){ const h=$(p+"H").value, m=$(p+"M").value; if(!h) return ""; return h+":"+(m||"00"); }
 function setT(p,t){ const [h,m]=(t||"").split(":"); $(p+"H").value=h||""; $(p+"M").value=t?(m||"00"):""; }
+$("vW").addEventListener("change",saveVisit);
+$("vWClr").onclick=()=>{ $("vW").value=""; saveVisit(); };
 ["vIn","vOut"].forEach(p=>{
   fillSel(p+"H",24); fillSel(p+"M",60);
   $(p+"H").addEventListener("change",()=>{ if($(p+"H").value && !$(p+"M").value) $(p+"M").value="00"; if(!$(p+"H").value) $(p+"M").value=""; saveVisit(); });
