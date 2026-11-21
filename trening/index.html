@@ -15,6 +15,9 @@
 <meta name="apple-mobile-web-app-title" content="Trening">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<script>
+window.addEventListener("error",function(e){try{var d=document.getElementById("jsErr");if(!d){d=document.createElement("div");d.id="jsErr";d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#b00020;color:#fff;padding:10px 12px;border-radius:10px;font:13px system-ui";document.body&&document.body.appendChild(d);}d.textContent="Błąd aplikacji: "+(e.message||"")+" ("+(e.lineno||"")+")";}catch(_){}});
+</script>
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -45,7 +48,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .backup{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
 .backup .rowbtns{flex-wrap:wrap}
 .backup .ghost{flex:1;color:var(--ink)}
@@ -94,6 +97,7 @@ h1{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:1;
 
 .dayhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .dayhead h2{font-family:var(--font-display);font-size:24px;font-weight:700;margin:0;line-height:1.1}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;height:56px;border:0;border-radius:18px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px;padding:0 20px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
 .addbtn{height:44px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:0 16px;font-size:15px;white-space:nowrap}
 .entries{display:flex;flex-direction:column;gap:10px}
 .entry{padding:12px 14px;display:grid;grid-template-columns:6px 1fr auto;gap:12px;align-items:stretch;border:0;text-align:left;width:100%}
@@ -197,7 +201,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="cats" id="cats"></div>
   </section>
 
-  <section style="display:flex;flex-direction:column;gap:10px" aria-label="Wybrany dzień">
+  <section id="daySec" style="display:flex;flex-direction:column;gap:10px;scroll-margin-top:12px" aria-label="Wybrany dzień">
     <div class="dayhead">
       <h2 id="dayTitle">Dziś</h2>
       <button class="addbtn" id="addBtn">+ Dodaj</button>
@@ -219,10 +223,11 @@ textarea{resize:vertical;min-height:60px}
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
     </div>
     <p id="bkMsg" hidden></p>
-    <p>Wersja 3 · 21.11.2026</p>
+    <p>Wersja 4 · 21.11.2026</p>
   </section>
 </div>
 
+<button class="fab" id="fab" type="button">+ Dodaj trening</button>
 <div class="scrim" id="scrim" hidden></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
   <div class="in">
@@ -398,7 +403,7 @@ function render(){
       [...new Set(list.map(e=>e.cat))].forEach(c=>{ const s=document.createElement("i"); s.className="dot"; s.style.background="var("+(CAT[c]||CAT.oth).color+")"; dots.appendChild(s); });
       b.appendChild(dots);
     }
-    b.onclick=()=>{ selected=k; if(d.getMonth()!==mo){ view=new Date(d.getFullYear(),d.getMonth(),1);} render(); };
+    b.onclick=()=>{ selected=k; if(d.getMonth()!==mo){ view=new Date(d.getFullYear(),d.getMonth(),1);} render(); try{ $("daySec").scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){ $("daySec").scrollIntoView(); } };
     grid.appendChild(b);
   }
   $("legend").innerHTML = CATS.map(c=>'<span><i class="dot" style="background:var('+c.color+')"></i>'+esc(c.name)+'</span>').join("");
@@ -595,6 +600,7 @@ $("delCat").onclick=async()=>{
 renderTabs();
 $("addSet").onclick=()=>addSetRow();
 $("addBtn").onclick=()=>openSheet(null);
+$("fab").onclick=()=>openSheet(null);
 $("cancelBtn").onclick=closeSheet; $("scrim").onclick=closeSheet;
 document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && !$("sheet").hidden) closeSheet(); });
 
@@ -652,8 +658,6 @@ $("bkFile").onchange=async()=>{
 };
 
 if("serviceWorker" in navigator){
-  const had=!!navigator.serviceWorker.controller; let reloaded=false;
-  navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(had && !reloaded){ reloaded=true; location.reload(); } });
   navigator.serviceWorker.register("sw.js",{scope:"./",updateViaCache:"none"}).then(r=>r.update()).catch(()=>{});
 }
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
