@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Trening</title>
+<meta name="description" content="Dziennik treningowy: kalendarz, rower, bieg, ćwiczenia siłowe.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#e2462c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Trening">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: jedna kolumna jak aplikacja na telefon — miesiąc, kalendarz, podsumowanie, wybrany dzień; formularz jako arkusz od dołu */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --surface-2:#f5f7f9; --ink:#141a21; --muted:#5d6874; --line:#d9dfe5;
+  --accent:#e2462c; --accent-ink:#ffffff;
+  --spd:#1f6fd6; --c1:#0e8f9a; --c2:#c93a83; --c3:#a77c00; --c4:#4f5fd6; --c5:#b5452f; --c6:#5f8a12; --rec:#7a4fd0; --run:#e07a10; --str:#1d9a5b; --oth:#6b7684;
+  --today:#141a21; --sel-bg:#141a21; --sel-ink:#ffffff;
+  --shadow:0 1px 2px rgba(20,26,33,.06),0 6px 20px rgba(20,26,33,.06);
+  --font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1318; --surface:#181e25; --surface-2:#1f262e; --ink:#e8edf2; --muted:#94a0ad; --line:#2b333d;
+  --accent:#ff5a3c; --accent-ink:#ffffff;
+  --spd:#4c95f0; --c1:#35c2cc; --c2:#ef6aae; --c3:#e0b229; --c4:#8592f5; --c5:#f07a5f; --c6:#93c43c; --rec:#a07ff0; --run:#f59a3a; --str:#3cc47e; --oth:#8f9aa6;
+  --today:#e8edf2; --sel-bg:#e8edf2; --sel-ink:#0f1318;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --surface:#181e25; --surface-2:#1f262e; --ink:#e8edf2; --muted:#94a0ad; --line:#2b333d;
+  --accent:#ff5a3c; --accent-ink:#ffffff;
+  --spd:#4c95f0; --c1:#35c2cc; --c2:#ef6aae; --c3:#e0b229; --c4:#8592f5; --c5:#f07a5f; --c6:#93c43c; --rec:#a07ff0; --run:#f59a3a; --str:#3cc47e; --oth:#8f9aa6;
+  --today:#e8edf2; --sel-bg:#e8edf2; --sel-ink:#0f1318;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+.backup{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.backup .rowbtns{flex-wrap:wrap}
+.backup .ghost{flex:1;color:var(--ink)}
+.backup p{margin:0;font-size:13px;color:var(--muted)}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:1;margin:2px 0 0;text-transform:capitalize;text-wrap:balance}
+.navbtns{display:flex;gap:6px}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:18px}
+.todaybtn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:13px}
+
+.card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow)}
+.cal{padding:12px 10px 10px}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow div{text-align:center;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-bottom:6px}
+.day{aspect-ratio:1/1.08;max-width:100%;border:0;background:transparent;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;gap:4px;position:relative}
+.day .n{font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+.day.out .n{color:var(--muted);opacity:.45}
+.day.has{background:var(--surface-2)}
+.day.today .n{color:var(--accent);font-weight:800}
+.day.sel{background:var(--sel-bg)}
+.day.sel .n{color:var(--sel-ink)}
+.dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:90%}
+.dot{width:7px;height:7px;border-radius:50%}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;padding:10px 6px 2px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+
+.summary{padding:14px 16px}
+.sumhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.big{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.big div{display:flex;flex-direction:column;min-width:0}
+.big b{font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+.big small{font-size:11px;color:var(--muted)}
+.cats{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.catrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:13px}
+.catrow .bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.catrow .bar i{display:block;height:100%;border-radius:3px}
+.catrow .v{color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+
+.dayhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dayhead h2{font-family:var(--font-display);font-size:24px;font-weight:700;margin:0;line-height:1.1}
+.addbtn{height:44px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:0 16px;font-size:15px;white-space:nowrap}
+.entries{display:flex;flex-direction:column;gap:10px}
+.entry{padding:12px 14px;display:grid;grid-template-columns:6px 1fr auto;gap:12px;align-items:stretch;border:0;text-align:left;width:100%}
+.entry .stripe{border-radius:3px}
+.entry .t{font-weight:600;font-size:15px}
+.entry .c{font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--surface-2);border-radius:8px;padding:3px 8px;font-size:13px;font-variant-numeric:tabular-nums}
+.chip em{font-style:normal;color:var(--muted);font-size:11px;margin-left:2px}
+.entry .more{color:var(--muted);font-size:13px;align-self:center;white-space:nowrap}
+.note{margin-top:6px;font-size:13px;color:var(--muted)}
+.empty{padding:22px 16px;text-align:center;color:var(--muted);font-size:14px}
+.visit{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.visit .field label{display:flex;justify-content:space-between}
+.vrow{display:flex;gap:6px}
+.vrow input{padding:9px 10px}
+.now{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px;font-size:13px;font-weight:600;color:var(--accent)}
+.vdur{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:8px;font-size:13px;color:var(--muted)}
+.vdur b{font-family:var(--font-display);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+@media (max-width:480px){.visit{grid-template-columns:1fr}}
+.vrow input{flex:1}
+.status{font-size:12px;color:var(--muted);text-align:center}
+.status.warn{color:var(--accent)}
+
+/* Arkusz */
+.scrim{position:fixed;inset:0;background:rgba(10,14,18,.45);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:22px 22px 0 0;max-height:92%;overflow-y:auto;
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+.sheet .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 2px}
+.sheet h3{font-family:var(--font-display);font-size:24px;font-weight:700;margin:0}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tab{flex:0 0 auto;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.tab[aria-pressed="true"]{border-color:var(--c);background:var(--c);color:#fff}
+.tab.addtab{border-style:dashed;color:var(--muted)}
+.newcat{display:flex;flex-direction:column;gap:10px;background:var(--surface-2);border-radius:14px;padding:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg button{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 6px;font-size:13px;font-weight:600}
+.seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.rowbtns{display:flex;gap:8px}
+.rowbtns .primary{height:44px;font-size:15px}
+.rowbtns .ghost{flex:0 0 auto}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);font-size:13px;text-decoration:underline;align-self:flex-start}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:12px;font-weight:600;color:var(--muted)}
+input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:60px}
+.row{display:grid;gap:10px}
+.r3{grid-template-columns:repeat(3,1fr)}
+.r2{grid-template-columns:repeat(2,1fr)}
+.unit{position:relative}
+.unit input{padding-right:42px}
+.unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
+.derived{font-size:13px;color:var(--muted);min-height:18px}
+.sets{display:flex;flex-direction:column;gap:8px}
+.setrow{display:grid;grid-template-columns:28px 1fr 1fr 36px;gap:8px;align-items:center}
+.setrow .i{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--muted);text-align:center}
+.x{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.ghost{border:1.5px dashed var(--line);background:transparent;border-radius:12px;padding:10px;font-weight:600;color:var(--muted)}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.quick button{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:5px 10px;font-size:13px}
+.actions{display:flex;gap:10px;align-items:center}
+.primary{flex:1;height:50px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px}
+.danger{height:50px;padding:0 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--accent);font-weight:600}
+.err{color:var(--accent);font-size:13px}
+@media (max-width:380px){.big{grid-template-columns:repeat(2,1fr)}.big b{font-size:24px}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">Dziennik treningowy</div>
+      <h1 id="monthTitle">Listopad 2026</h1>
+    </div>
+    <div class="navbtns">
+      <button class="iconbtn" id="prev" aria-label="Poprzedni miesiąc">‹</button>
+      <button class="todaybtn" id="goToday">Dziś</button>
+      <button class="iconbtn" id="next" aria-label="Następny miesiąc">›</button>
+    </div>
+  </header>
+
+  <section class="card cal" aria-label="Kalendarz">
+    <div class="dow"><div>Pn</div><div>Wt</div><div>Śr</div><div>Cz</div><div>Pt</div><div>So</div><div>Nd</div></div>
+    <div class="grid" id="grid"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="card summary" aria-label="Podsumowanie miesiąca">
+    <div class="sumhead"><span class="label">Ten miesiąc</span><span class="label" id="sumDays"></span></div>
+    <div class="big">
+      <div><b id="sKm">0</b><small>km</small></div>
+      <div><b id="sKcal">0</b><small>kcal</small></div>
+      <div><b id="sTime">0:00</b><small>czas (h:mm)</small></div>
+      <div><b id="sSets">0</b><small>serie siłowe</small></div>
+    </div>
+    <div class="cats" id="cats"></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:10px" aria-label="Wybrany dzień">
+    <div class="dayhead">
+      <h2 id="dayTitle">Dziś</h2>
+      <button class="addbtn" id="addBtn">+ Dodaj</button>
+    </div>
+    <div class="card visit" aria-label="Pobyt na siłowni">
+      <div class="field"><label for="vIn">Wejście</label><div class="vrow"><input id="vIn" type="time"><button class="now" id="vInNow" type="button">Teraz</button></div></div>
+      <div class="field"><label for="vOut">Wyjście</label><div class="vrow"><input id="vOut" type="time"><button class="now" id="vOutNow" type="button">Teraz</button></div></div>
+      <div class="vdur"><span id="vDurLabel">Czas na siłowni</span><b id="vDur">–</b></div>
+    </div>
+    <div class="entries" id="entries"></div>
+  </section>
+  <div class="status" id="status">Ładowanie zapisanych treningów…</div>
+  <section class="card backup" aria-label="Kopia zapasowa">
+    <span class="label">Kopia zapasowa</span>
+    <p>Dane są zapisane tylko na tym telefonie. Raz na jakiś czas zapisz kopię, np. przed zmianą telefonu.</p>
+    <div class="rowbtns">
+      <button type="button" class="ghost" id="bkExport">Zapisz kopię</button>
+      <button type="button" class="ghost" id="bkImport">Wczytaj kopię</button>
+      <input type="file" id="bkFile" accept="application/json,.json" hidden>
+    </div>
+    <p id="bkMsg" hidden></p>
+  </section>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="in">
+    <div class="grab"></div>
+    <h3 id="sheetTitle">Nowe ćwiczenie</h3>
+    <div class="tabs" id="tabs" role="group" aria-label="Rodzaj ćwiczenia"></div>
+    <div class="newcat" id="newCat" hidden>
+      <div class="field"><label for="ncName">Nazwa nowej zakładki</label><input id="ncName" maxlength="30" placeholder="np. Pływanie, Rozciąganie, Brzuch"></div>
+      <div class="field"><label>Co będziesz wpisywać?</label>
+        <div class="seg" role="group" aria-label="Rodzaj pól"><button type="button" id="ncCardio" aria-pressed="true">km · kcal · czas</button><button type="button" id="ncStr" aria-pressed="false">serie · powt. · kg</button></div>
+      </div>
+      <div class="err" id="ncErr" hidden></div>
+      <div class="rowbtns"><button type="button" class="primary" id="ncSave">Utwórz zakładkę</button><button type="button" class="ghost" id="ncCancel">Anuluj</button></div>
+    </div>
+    <button type="button" class="linkbtn" id="delCat" hidden>Usuń tę zakładkę</button>
+
+    <div class="field"><label for="fName">Nazwa</label>
+      <input id="fName" list="nameList" autocomplete="off" placeholder="np. Wyciskanie na ławce">
+      <datalist id="nameList"></datalist>
+      <div class="quick" id="quick"></div>
+    </div>
+
+    <div id="cardioBox" class="row" style="gap:12px">
+      <div class="row r2">
+        <div class="field"><label for="fKm">Dystans</label><div class="unit"><input id="fKm" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0"><span>km</span></div></div>
+        <div class="field"><label for="fKcal">Spalone kalorie</label><div class="unit"><input id="fKcal" type="number" inputmode="numeric" step="1" min="0" placeholder="0"><span>kcal</span></div></div>
+      </div>
+      <div class="field"><label>Czas</label>
+        <div class="row r3">
+          <div class="unit"><input id="fH" type="number" inputmode="numeric" min="0" placeholder="0" aria-label="Godziny"><span>h</span></div>
+          <div class="unit"><input id="fM" type="number" inputmode="numeric" min="0" max="59" placeholder="0" aria-label="Minuty"><span>min</span></div>
+          <div class="unit"><input id="fS" type="number" inputmode="numeric" min="0" max="59" placeholder="0" aria-label="Sekundy"><span>s</span></div>
+        </div>
+      </div>
+      <div class="derived" id="derived"></div>
+    </div>
+
+    <div id="strengthBox" class="row" style="gap:10px" hidden>
+      <div class="field"><label>Serie</label>
+        <div class="sets" id="sets"></div>
+      </div>
+      <button class="ghost" id="addSet" type="button">+ Dodaj serię</button>
+      <div class="field"><label for="fKcal2">Spalone kalorie (opcjonalnie)</label><div class="unit"><input id="fKcal2" type="number" inputmode="numeric" min="0" placeholder="0"><span>kcal</span></div></div>
+      <div class="derived" id="derived2"></div>
+    </div>
+
+    <div class="field"><label for="fNote">Notatka</label><textarea id="fNote" placeholder="np. tętno średnie 142, opór 8"></textarea></div>
+    <div class="err" id="formErr" hidden></div>
+    <div class="actions">
+      <button class="danger" id="delBtn" type="button" hidden>Usuń</button>
+      <button class="primary" id="saveBtn" type="button">Zapisz</button>
+    </div>
+    <button class="ghost" id="cancelBtn" type="button">Anuluj</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const BASE_CATS = [
+  {id:"spd", name:"Rower SPD", short:"SPD", type:"cardio", color:"--spd", names:["Rower SPD","Spinning"]},
+  {id:"rec", name:"Rower siedzący", short:"Rower siedz.", type:"cardio", color:"--rec", names:["Rower poziomy","Rower siedzący"]},
+  {id:"run", name:"Bieg", short:"Bieg", type:"cardio", color:"--run", names:["Bieżnia","Bieg na zewnątrz"]},
+  {id:"str", name:"Siłowe", short:"Siłowe", type:"strength", color:"--str", names:["Wyciskanie na ławce","Przysiad","Martwy ciąg","Wiosłowanie sztangą","Ściąganie drążka","Wyciskanie nad głowę","Uginanie ramion","Prasa nożna"]},
+  {id:"oth", name:"Inne", short:"Inne", type:"cardio", color:"--oth", names:["Orbitrek","Wioślarz","Schody","Pływanie"]},
+];
+const COLORS=["--c1","--c2","--c3","--c4","--c5","--c6"];
+let customCats = [];   // {id,name,type,color}
+let CATS = BASE_CATS.slice(), CAT = {};
+function rebuildCats(){
+  CATS = BASE_CATS.concat(customCats.map(c=>({id:c.id,name:c.name,short:c.name,type:c.type,color:c.color,names:[c.name],custom:true})));
+  CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
+}
+rebuildCats();
+const MONTHS = ["styczeń","luty","marzec","kwiecień","maj","czerwiec","lipiec","sierpień","wrzesień","październik","listopad","grudzień"];
+const MONTHS_GEN = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"];
+const DAYS = ["niedziela","poniedziałek","wtorek","środa","czwartek","piątek","sobota"];
+const $ = id => document.getElementById(id);
+const cssv = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseIso = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const fmtNum = (n,dec=1) => (Math.round(n*Math.pow(10,dec))/Math.pow(10,dec)).toLocaleString("pl-PL",{maximumFractionDigits:dec});
+const fmtDur = s => { s=Math.round(s||0); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return h? h+":"+pad(m)+":"+pad(x) : m+":"+pad(x); };
+const fmtHM = s => { s=Math.round(s||0); return Math.floor(s/3600)+":"+pad(Math.floor(s%3600/60)); };
+
+let visits = {};            // {"YYYY-MM-DD":{in:"HH:MM",out:"HH:MM"}}
+let entries = [];           // {id,date,cat,name,km,kcal,sec,sets,note,created}
+let today = iso(new Date());
+let selected = today;
+let view = new Date(); view.setDate(1);
+let store = null;           // {save(e), remove(id)}
+let editing = null;         // entry being edited or null
+let formCat = "spd";
+
+/* ---------- Przechowywanie ---------- */
+const LS_KEY = "dziennik-treningowy-v1";
+function lsRead(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
+function lsWrite(arr){ try{ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }catch(e){} }
+function setStatus(t,warn){ const el=$("status"); el.textContent=t; el.classList.toggle("warn",!!warn); }
+
+const LS_V = "dziennik-treningowy-wizyty-v1";
+function lsReadV(){ try{ return JSON.parse(localStorage.getItem(LS_V)||"{}"); }catch(e){ return {}; } }
+function lsWriteV(){ try{ localStorage.setItem(LS_V, JSON.stringify(visits)); }catch(e){} }
+const LS_C = "dziennik-treningowy-zakladki-v1";
+function localStore(){
+  entries = lsRead(); visits = lsReadV();
+  try{ customCats = JSON.parse(localStorage.getItem(LS_C)||"[]"); }catch(e){ customCats=[]; }
+  rebuildCats(); renderTabs(); render();
+  setStatus(entries.length ? "Zapisane na tym telefonie · "+entries.length+" wpisów" : "");
+  return {
+    async save(e){ const i=entries.findIndex(x=>x.id===e.id); if(i>=0) entries[i]=e; else entries.push(e); lsWrite(entries); render(); },
+    async remove(id){ entries=entries.filter(x=>x.id!==id); lsWrite(entries); render(); },
+    async saveVisit(date,v){ if(v.in||v.out) visits[date]=v; else delete visits[date]; lsWriteV(); render(); },
+    async saveCats(list){ customCats=list; try{ localStorage.setItem(LS_C, JSON.stringify(list)); }catch(e){} rebuildCats(); renderTabs(); render(); }
+  };
+}
+
+async function init(){
+  render();
+  let db = null;
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db=null; }
+  if(!db){ store = localStore(); return; }
+  const col = db.collection("entries");
+  let loaded=false;
+  const timer = setTimeout(()=>{ if(!loaded) setStatus("Nie mogę jeszcze połączyć się z zapisanymi danymi. Sprawdź internet.", true); }, 10000);
+  col.onSnapshot(snap=>{
+    entries = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+    if(!snap.metadata.fromCache){ loaded=true; clearTimeout(timer); setStatus("Zapisano w chmurze · "+entries.length+" wpisów"); }
+    render();
+  }, err=>{
+    clearTimeout(timer);
+    setStatus("Połączenie z danymi zostało przerwane. Odśwież stronę.", true);
+  });
+  const vcol = db.collection("visits");
+  vcol.onSnapshot(snap=>{
+    const m={}; snap.docs.forEach(d=>{ m[d.id]=d.data(); }); visits=m; render();
+  }, ()=>{});
+  const catDoc = db.doc("settings/zakladki");
+  catDoc.onSnapshot(snap=>{
+    customCats = snap.exists ? ((snap.data().list)||[]).slice() : [];
+    rebuildCats(); renderTabs(); render();
+    if(!$("sheet").hidden && !editing) setCat(CAT[formCat]?formCat:"spd");
+  }, ()=>{});
+  store = {
+    async saveCats(list){ customCats=list; rebuildCats(); renderTabs(); render(); await catDoc.set({list}); },
+    async saveVisit(date,v){ if(v.in||v.out) await vcol.doc(date).set(v); else await vcol.doc(date).delete(); },
+    async save(e){ const {id,...body}=e; await col.doc(id).set(body); },
+    async remove(id){ await col.doc(id).delete(); }
+  };
+}
+
+/* ---------- Kalendarz ---------- */
+function byDate(){ const m={}; for(const e of entries){ (m[e.date]=m[e.date]||[]).push(e); } return m; }
+
+function render(){
+  const y=view.getFullYear(), mo=view.getMonth();
+  $("monthTitle").textContent = MONTHS[mo]+" "+y;
+  const map = byDate();
+  const grid=$("grid"); grid.innerHTML="";
+  const first = new Date(y,mo,1);
+  const offset = (first.getDay()+6)%7;
+  const start = new Date(y,mo,1-offset);
+  const weeks = Math.ceil((offset + new Date(y,mo+1,0).getDate())/7);
+  for(let i=0;i<weeks*7;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const k=iso(d), list=map[k]||[];
+    const b=document.createElement("button");
+    b.className="day"+(d.getMonth()!==mo?" out":"")+(list.length||visits[k]?" has":"")+(k===today?" today":"")+(k===selected?" sel":"");
+    b.setAttribute("aria-label", d.getDate()+" "+MONTHS_GEN[d.getMonth()]+(list.length?", "+list.length+" ćwiczeń":""));
+    const n=document.createElement("span"); n.className="n"; n.textContent=d.getDate(); b.appendChild(n);
+    if(list.length){
+      const dots=document.createElement("span"); dots.className="dots";
+      [...new Set(list.map(e=>e.cat))].forEach(c=>{ const s=document.createElement("i"); s.className="dot"; s.style.background="var("+(CAT[c]||CAT.oth).color+")"; dots.appendChild(s); });
+      b.appendChild(dots);
+    }
+    b.onclick=()=>{ selected=k; if(d.getMonth()!==mo){ view=new Date(d.getFullYear(),d.getMonth(),1);} render(); };
+    grid.appendChild(b);
+  }
+  $("legend").innerHTML = CATS.map(c=>'<span><i class="dot" style="background:var('+c.color+')"></i>'+esc(c.name)+'</span>').join("");
+  renderSummary(map,y,mo);
+  renderDay(map);
+}
+
+function renderSummary(map,y,mo){
+  const prefix=y+"-"+pad(mo+1)+"-";
+  const month = entries.filter(e=>e.date.startsWith(prefix));
+  const daySet = new Set(month.map(e=>e.date));
+  let gymMin=0;
+  Object.keys(visits).forEach(k=>{ if(k.startsWith(prefix)){ daySet.add(k); const m=visitMin(visits[k]); if(m!=null) gymMin+=m; } });
+  const days = daySet.size;
+  $("sumDays").textContent = (days===1 ? "1 dzień na siłowni" : days+" dni na siłowni") + (gymMin? " · "+Math.floor(gymMin/60)+":"+pad(gymMin%60)+" h" : "");
+  let km=0,kcal=0,sec=0,sets=0; const per={};
+  for(const e of month){
+    km+=+e.km||0; kcal+=+e.kcal||0; sec+=+e.sec||0; sets+=(e.sets||[]).length;
+    const p=per[e.cat]=per[e.cat]||{km:0,sec:0,n:0,kcal:0}; p.km+=+e.km||0; p.sec+=+e.sec||0; p.n++; p.kcal+=+e.kcal||0;
+  }
+  $("sKm").textContent=fmtNum(km); $("sKcal").textContent=Math.round(kcal).toLocaleString("pl-PL"); $("sTime").textContent=fmtHM(sec); $("sSets").textContent=sets;
+  const maxK = Math.max(1,...CATS.map(c=>(per[c.id]||{}).kcal||0));
+  $("cats").innerHTML = CATS.filter(c=>per[c.id]).map(c=>{
+    const p=per[c.id];
+    const v = c.type==="strength" ? p.n+" ćw." : fmtNum(p.km)+" km · "+fmtHM(p.sec);
+    const w = Math.max(4, Math.round(100*(p.kcal||0)/maxK));
+    return '<div class="catrow"><span style="min-width:96px">'+esc(c.short)+'</span><span class="bar"><i style="width:'+w+'%;background:var('+c.color+')"></i></span><span class="v">'+v+'</span></div>';
+  }).join("") || '<div class="note">W tym miesiącu nie ma jeszcze wpisów.</div>';
+}
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function renderDay(map){
+  const d=parseIso(selected);
+  const dn=DAYS[d.getDay()];
+  $("dayTitle").textContent = (selected===today?"Dziś, "+dn:dn.charAt(0).toUpperCase()+dn.slice(1))+" "+d.getDate()+" "+MONTHS_GEN[d.getMonth()];
+  const v=visits[selected]||{};
+  if(document.activeElement!==$("vIn")) $("vIn").value=v.in||"";
+  if(document.activeElement!==$("vOut")) $("vOut").value=v.out||"";
+  const vm=visitMin(v);
+  $("vDur").textContent = vm!=null ? Math.floor(vm/60)+" h "+pad(vm%60)+" min" : "–";
+  $("vDurLabel").textContent = vm!=null ? "Czas na siłowni" : (v.in ? "Wpisz godzinę wyjścia, żeby policzyć czas" : "Czas na siłowni");
+  const list=(map[selected]||[]).slice().sort((a,b)=>(a.created||0)-(b.created||0));
+  const box=$("entries"); box.innerHTML="";
+  if(!list.length){ box.innerHTML='<div class="card empty">Brak ćwiczeń tego dnia.<br>Naciśnij <b>+ Dodaj</b>, żeby zapisać trening.</div>'; return; }
+  for(const e of list){
+    const c=CAT[e.cat]||CAT.oth;
+    const b=document.createElement("button"); b.className="card entry";
+    let chips="";
+    if(c.type==="strength"){
+      chips=(e.sets||[]).map((s,i)=>'<span class="chip">'+(s.r||0)+' × '+fmtNum(+s.kg||0,2)+'<em>kg</em></span>').join("");
+      const vol=(e.sets||[]).reduce((a,s)=>a+(+s.r||0)*(+s.kg||0),0);
+      if(vol) chips+='<span class="chip">'+fmtNum(vol,0)+'<em>kg objętość</em></span>';
+      if(e.kcal) chips+='<span class="chip">'+Math.round(e.kcal)+'<em>kcal</em></span>';
+    } else {
+      if(e.km) chips+='<span class="chip">'+fmtNum(+e.km,2)+'<em>km</em></span>';
+      if(e.sec) chips+='<span class="chip">'+fmtDur(e.sec)+'<em>czas</em></span>';
+      if(e.kcal) chips+='<span class="chip">'+Math.round(e.kcal)+'<em>kcal</em></span>';
+      if(e.km && e.sec) chips+='<span class="chip">'+fmtNum(e.km/(e.sec/3600),1)+'<em>km/h</em></span>';
+      if(e.km && e.sec && e.cat==="run") chips+='<span class="chip">'+fmtDur(e.sec/e.km)+'<em>/km</em></span>';
+    }
+    b.innerHTML='<span class="stripe" style="background:var('+c.color+')"></span><span style="min-width:0"><span class="c">'+esc(c.name)+'</span><div class="t">'+esc(e.name||c.name)+'</div><div class="chips">'+chips+'</div>'+(e.note?'<div class="note">'+esc(e.note)+'</div>':'')+'</span><span class="more">Edytuj ›</span>';
+    b.onclick=()=>openSheet(e);
+    box.appendChild(b);
+  }
+}
+
+/* ---------- Wejście / wyjście ---------- */
+function toMin(t){ if(!t) return null; const [h,m]=t.split(":").map(Number); return h*60+m; }
+function visitMin(v){ if(!v) return null; const a=toMin(v.in), b=toMin(v.out); if(a==null||b==null) return null; let d=b-a; if(d<0) d+=1440; return d; }
+function nowHM(){ const d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
+async function saveVisit(){
+  const v={in:$("vIn").value||"", out:$("vOut").value||""};
+  const old=visits[selected]||{};
+  if((old.in||"")===v.in && (old.out||"")===v.out) return;
+  visits[selected]=v; render();
+  if(!store) return;
+  try{ await store.saveVisit(selected,v); }catch(e){ setStatus("Nie udało się zapisać godzin. Spróbuj jeszcze raz.", true); }
+}
+$("vIn").addEventListener("change",saveVisit);
+$("vOut").addEventListener("change",saveVisit);
+$("vInNow").onclick=()=>{ $("vIn").value=nowHM(); saveVisit(); };
+$("vOutNow").onclick=()=>{ $("vOut").value=nowHM(); saveVisit(); };
+
+/* ---------- Formularz ---------- */
+function setCat(id){
+  if(!CAT[id]) id="oth";
+  formCat=id; const c=CAT[id];
+  $("newCat").hidden=true;
+  $("delCat").hidden = !(c.custom && !editing);
+  $("tabs").querySelectorAll(".tab").forEach(t=>{ const on=t.dataset.id===id; t.setAttribute("aria-pressed", on?"true":"false"); if(on) try{ t.scrollIntoView({block:"nearest",inline:"nearest"}); }catch(e){} });
+  $("cardioBox").hidden = c.type!=="cardio";
+  $("strengthBox").hidden = c.type!=="strength";
+  $("fName").placeholder = c.names[0];
+  const used=[...new Set(entries.filter(e=>e.cat===id).map(e=>e.name).filter(Boolean))];
+  const names=[...new Set([...used,...c.names])];
+  $("nameList").innerHTML = names.map(n=>'<option value="'+esc(n)+'"></option>').join("");
+  $("quick").innerHTML = names.slice(0,8).map(n=>'<button type="button">'+esc(n)+'</button>').join("");
+  $("quick").querySelectorAll("button").forEach(b=>b.onclick=()=>{ $("fName").value=b.textContent; if(c.type==="strength") prefillLast(b.textContent); });
+  if(c.type==="strength" && !$("sets").children.length) addSetRow();
+  updDerived();
+}
+
+function prefillLast(name){
+  if(editing) return;
+  const last = entries.filter(e=>e.cat==="str" && e.name===name && e.date<=selected).sort((a,b)=>(b.date+b.created).localeCompare(a.date+a.created))[0];
+  if(!last || !(last.sets||[]).length) return;
+  $("sets").innerHTML=""; last.sets.forEach(s=>addSetRow(s.r,s.kg)); updDerived();
+}
+
+function addSetRow(r,kg){
+  const rows=$("sets"); const prev=rows.lastElementChild;
+  const row=document.createElement("div"); row.className="setrow";
+  const i=rows.children.length+1;
+  const pr = r!=null ? r : (prev? prev.querySelector(".r").value : "");
+  const pk = kg!=null ? kg : (prev? prev.querySelector(".kg").value : "");
+  row.innerHTML='<span class="i">'+i+'</span><div class="unit"><input class="r" type="number" inputmode="numeric" min="0" placeholder="0" aria-label="Powtórzenia serii '+i+'"><span>powt.</span></div><div class="unit"><input class="kg" type="number" inputmode="decimal" step="0.5" min="0" placeholder="0" aria-label="Ciężar serii '+i+'"><span>kg</span></div><button type="button" class="x" aria-label="Usuń serię">×</button>';
+  row.querySelector(".r").value=pr; row.querySelector(".kg").value=pk;
+  row.querySelector(".x").onclick=()=>{ row.remove(); [...rows.children].forEach((r,j)=>r.querySelector(".i").textContent=j+1); updDerived(); };
+  row.querySelectorAll("input").forEach(x=>x.oninput=updDerived);
+  rows.appendChild(row); updDerived();
+}
+
+function readSec(){ return (+$("fH").value||0)*3600+(+$("fM").value||0)*60+(+$("fS").value||0); }
+function updDerived(){
+  const km=+$("fKm").value||0, sec=readSec();
+  let t="";
+  if(km && sec){ t="Średnia prędkość "+fmtNum(km/(sec/3600),1)+" km/h"; if(formCat==="run") t+=" · tempo "+fmtDur(sec/km)+" /km"; }
+  $("derived").textContent=t;
+  const sets=[...$("sets").children].map(r=>({r:+r.querySelector(".r").value||0,kg:+r.querySelector(".kg").value||0}));
+  const vol=sets.reduce((a,s)=>a+s.r*s.kg,0);
+  $("derived2").textContent = sets.length ? sets.length+" serie · "+sets.reduce((a,s)=>a+s.r,0)+" powtórzeń"+(vol?" · objętość "+fmtNum(vol,0)+" kg":"") : "";
+}
+["fKm","fH","fM","fS"].forEach(id=>$(id).addEventListener("input",updDerived));
+
+function openSheet(e){
+  editing=e||null;
+  $("formErr").hidden=true;
+  $("sheetTitle").textContent = e ? "Edytuj ćwiczenie" : "Nowe ćwiczenie · "+parseIso(selected).getDate()+" "+MONTHS_GEN[parseIso(selected).getMonth()];
+  $("delBtn").hidden=!e; $("delBtn").textContent="Usuń"; $("delBtn").dataset.armed="";
+  $("sets").innerHTML="";
+  $("fName").value=e?e.name||"":"";
+  $("fKm").value=e&&e.km?e.km:""; $("fKcal").value=e&&e.kcal?e.kcal:""; $("fKcal2").value=e&&e.kcal?e.kcal:"";
+  const s=e?e.sec||0:0;
+  $("fH").value=s?Math.floor(s/3600)||"":""; $("fM").value=s?Math.floor(s%3600/60)||"":""; $("fS").value=s?s%60||"":"";
+  $("fNote").value=e?e.note||"":"";
+  if(e && e.sets) e.sets.forEach(x=>addSetRow(x.r,x.kg));
+  $("delCat").textContent="Usuń tę zakładkę"; $("delCat").dataset.armed="";
+  setCat(e?e.cat:formCat);
+  $("scrim").hidden=false; $("sheet").hidden=false; $("sheet").scrollTop=0;
+}
+function closeSheet(){ $("scrim").hidden=true; $("sheet").hidden=true; editing=null; }
+
+function renderTabs(){
+  $("tabs").innerHTML = CATS.map(c=>'<button type="button" class="tab" data-id="'+c.id+'" style="--c:var('+c.color+')"><i class="dot" style="background:var('+c.color+')"></i>'+esc(c.name)+'</button>').join("")
+    + '<button type="button" class="tab addtab" id="addTab">+ Dodaj</button>';
+  $("tabs").querySelectorAll(".tab[data-id]").forEach(t=>{
+    t.setAttribute("aria-pressed", t.dataset.id===formCat?"true":"false");
+    t.onclick=()=>{ if(!editing) $("sets").innerHTML=""; setCat(t.dataset.id); };
+  });
+  $("addTab").onclick=()=>{ $("newCat").hidden=false; $("ncErr").hidden=true; $("ncName").value=""; $("ncName").focus(); };
+}
+let ncType="cardio";
+function setNcType(t){ ncType=t; $("ncCardio").setAttribute("aria-pressed",t==="cardio"); $("ncStr").setAttribute("aria-pressed",t==="strength"); }
+$("ncCardio").onclick=()=>setNcType("cardio");
+$("ncStr").onclick=()=>setNcType("strength");
+$("ncCancel").onclick=()=>{ $("newCat").hidden=true; };
+$("ncSave").onclick=async()=>{
+  const name=$("ncName").value.trim();
+  const err=t=>{ $("ncErr").textContent=t; $("ncErr").hidden=false; };
+  if(!name) return err("Wpisz nazwę zakładki.");
+  if(CATS.some(c=>c.name.toLowerCase()===name.toLowerCase())) return err("Taka zakładka już istnieje.");
+  const c={id:"u"+Date.now().toString(36), name, type:ncType, color:COLORS[customCats.length%COLORS.length]};
+  const list=customCats.concat([c]);
+  try{ await store.saveCats(list); }catch(e){ return err("Nie udało się zapisać zakładki. Spróbuj jeszcze raz."); }
+  $("newCat").hidden=true; setNcType("cardio");
+  if(!editing) $("sets").innerHTML="";
+  setCat(c.id);
+};
+$("delCat").onclick=async()=>{
+  const b=$("delCat"), c=CAT[formCat];
+  if(!c || !c.custom) return;
+  const n=entries.filter(e=>e.cat===c.id).length;
+  if(n){ b.textContent="Tej zakładki nie można usunąć: ma "+n+" wpisów. Najpierw usuń te wpisy."; return; }
+  if(!b.dataset.armed){ b.dataset.armed="1"; b.textContent="Na pewno usunąć zakładkę „"+c.name+"”?"; return; }
+  b.dataset.armed=""; b.textContent="Usuń tę zakładkę";
+  try{ await store.saveCats(customCats.filter(x=>x.id!==c.id)); setCat("spd"); }catch(e){ showErr("Nie udało się usunąć zakładki."); }
+};
+renderTabs();
+$("addSet").onclick=()=>addSetRow();
+$("addBtn").onclick=()=>openSheet(null);
+$("cancelBtn").onclick=closeSheet; $("scrim").onclick=closeSheet;
+document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && !$("sheet").hidden) closeSheet(); });
+
+$("saveBtn").onclick=async()=>{
+  const c=CAT[formCat];
+  const e={ id: editing?editing.id:("e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+    date: editing?editing.date:selected, cat: formCat, name: $("fName").value.trim()||c.names[0],
+    note: $("fNote").value.trim(), created: editing?editing.created:Date.now() };
+  if(c.type==="strength"){
+    e.sets=[...$("sets").children].map(r=>({r:+r.querySelector(".r").value||0,kg:+r.querySelector(".kg").value||0})).filter(s=>s.r||s.kg);
+    e.kcal=+$("fKcal2").value||0; e.km=0; e.sec=0;
+    if(!e.sets.length){ return showErr("Wpisz przynajmniej jedną serię (powtórzenia lub ciężar)."); }
+  } else {
+    e.km=+$("fKm").value||0; e.kcal=+$("fKcal").value||0; e.sec=readSec(); e.sets=[];
+    if(!e.km && !e.kcal && !e.sec){ return showErr("Wpisz dystans, kalorie albo czas."); }
+  }
+  $("saveBtn").disabled=true;
+  try{ await store.save(e); closeSheet(); }
+  catch(err){ showErr("Nie udało się zapisać. Sprawdź połączenie i spróbuj jeszcze raz."); }
+  finally{ $("saveBtn").disabled=false; }
+};
+function showErr(t){ $("formErr").textContent=t; $("formErr").hidden=false; }
+
+$("delBtn").onclick=async()=>{
+  const b=$("delBtn");
+  if(!b.dataset.armed){ b.dataset.armed="1"; b.textContent="Na pewno?"; return; }
+  try{ await store.remove(editing.id); closeSheet(); }catch(err){ showErr("Nie udało się usunąć. Spróbuj jeszcze raz."); }
+};
+
+$("prev").onclick=()=>{ view=new Date(view.getFullYear(),view.getMonth()-1,1); render(); };
+$("next").onclick=()=>{ view=new Date(view.getFullYear(),view.getMonth()+1,1); render(); };
+$("goToday").onclick=()=>{ today=iso(new Date()); selected=today; view=new Date(); view.setDate(1); render(); };
+
+/* ---------- Kopia zapasowa ---------- */
+function bkMsg(t){ $("bkMsg").textContent=t; $("bkMsg").hidden=false; }
+$("bkExport").onclick=()=>{
+  const data={app:"dziennik-treningowy",version:1,saved:new Date().toISOString(),entries,visits,customCats};
+  const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="trening-kopia-"+today+".json";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  bkMsg("Kopia zapisana ("+entries.length+" wpisów).");
+};
+$("bkImport").onclick=()=>$("bkFile").click();
+$("bkFile").onchange=async()=>{
+  const f=$("bkFile").files[0]; if(!f) return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(!d || !Array.isArray(d.entries)) throw 0;
+    entries=d.entries; visits=d.visits||{}; customCats=d.customCats||[];
+    lsWrite(entries); lsWriteV(); try{ localStorage.setItem(LS_C, JSON.stringify(customCats)); }catch(e){}
+    rebuildCats(); renderTabs(); render();
+    bkMsg("Wczytano kopię: "+entries.length+" wpisów.");
+  }catch(e){ bkMsg("To nie jest plik kopii z tej aplikacji."); }
+  $("bkFile").value="";
+};
+
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{}); }
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+init();
+})();
+</script>
+
+</body>
+</html>
