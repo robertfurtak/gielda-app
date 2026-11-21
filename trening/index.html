@@ -109,12 +109,16 @@ h1{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:1;
 .visit{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .visit .field label{display:flex;justify-content:space-between}
 .vrow{display:flex;gap:6px}
-.vrow input{padding:9px 10px}
-.now{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px;font-size:13px;font-weight:600;color:var(--accent)}
+.vrow{align-items:center}
+.tsel{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.tsel select{font:inherit;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 8px;flex:1;min-width:0;text-align:center}
+.tsel b{font-size:18px;color:var(--muted)}
+.clr{flex:0 0 auto;width:36px;height:40px;border:0;background:none;color:var(--muted);font-size:20px}
+.now{flex:0 0 auto;height:44px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px;font-size:13px;font-weight:600;color:var(--accent)}
 .vdur{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:8px;font-size:13px;color:var(--muted)}
 .vdur b{font-family:var(--font-display);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
 @media (max-width:480px){.visit{grid-template-columns:1fr}}
-.vrow input{flex:1}
+
 .status{font-size:12px;color:var(--muted);text-align:center}
 .status.warn{color:var(--accent)}
 
@@ -199,8 +203,8 @@ textarea{resize:vertical;min-height:60px}
       <button class="addbtn" id="addBtn">+ Dodaj</button>
     </div>
     <div class="card visit" aria-label="Pobyt na siłowni">
-      <div class="field"><label for="vIn">Wejście</label><div class="vrow"><input id="vIn" type="time"><button class="now" id="vInNow" type="button">Teraz</button></div></div>
-      <div class="field"><label for="vOut">Wyjście</label><div class="vrow"><input id="vOut" type="time"><button class="now" id="vOutNow" type="button">Teraz</button></div></div>
+      <div class="field"><label for="vInH">Wejście</label><div class="vrow"><div class="tsel"><select id="vInH" aria-label="Wejście – godzina"></select><b>:</b><select id="vInM" aria-label="Wejście – minuty"></select></div><button class="now" id="vInNow" type="button">Teraz</button><button class="clr" id="vInClr" type="button" aria-label="Wyczyść wejście">×</button></div></div>
+      <div class="field"><label for="vOutH">Wyjście</label><div class="vrow"><div class="tsel"><select id="vOutH" aria-label="Wyjście – godzina"></select><b>:</b><select id="vOutM" aria-label="Wyjście – minuty"></select></div><button class="now" id="vOutNow" type="button">Teraz</button><button class="clr" id="vOutClr" type="button" aria-label="Wyczyść wyjście">×</button></div></div>
       <div class="vdur"><span id="vDurLabel">Czas na siłowni</span><b id="vDur">–</b></div>
     </div>
     <div class="entries" id="entries"></div>
@@ -431,8 +435,7 @@ function renderDay(map){
   const dn=DAYS[d.getDay()];
   $("dayTitle").textContent = (selected===today?"Dziś, "+dn:dn.charAt(0).toUpperCase()+dn.slice(1))+" "+d.getDate()+" "+MONTHS_GEN[d.getMonth()];
   const v=visits[selected]||{};
-  if(document.activeElement!==$("vIn")) $("vIn").value=v.in||"";
-  if(document.activeElement!==$("vOut")) $("vOut").value=v.out||"";
+  setT("vIn",v.in); setT("vOut",v.out);
   const vm=visitMin(v);
   $("vDur").textContent = vm!=null ? Math.floor(vm/60)+" h "+pad(vm%60)+" min" : "–";
   $("vDurLabel").textContent = vm!=null ? "Czas na siłowni" : (v.in ? "Wpisz godzinę wyjścia, żeby policzyć czas" : "Czas na siłowni");
@@ -466,17 +469,23 @@ function toMin(t){ if(!t) return null; const [h,m]=t.split(":").map(Number); ret
 function visitMin(v){ if(!v) return null; const a=toMin(v.in), b=toMin(v.out); if(a==null||b==null) return null; let d=b-a; if(d<0) d+=1440; return d; }
 function nowHM(){ const d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
 async function saveVisit(){
-  const v={in:$("vIn").value||"", out:$("vOut").value||""};
+  const v={in:getT("vIn"), out:getT("vOut")};
   const old=visits[selected]||{};
   if((old.in||"")===v.in && (old.out||"")===v.out) return;
   visits[selected]=v; render();
   if(!store) return;
   try{ await store.saveVisit(selected,v); }catch(e){ setStatus("Nie udało się zapisać godzin. Spróbuj jeszcze raz.", true); }
 }
-$("vIn").addEventListener("change",saveVisit);
-$("vOut").addEventListener("change",saveVisit);
-$("vInNow").onclick=()=>{ $("vIn").value=nowHM(); saveVisit(); };
-$("vOutNow").onclick=()=>{ $("vOut").value=nowHM(); saveVisit(); };
+function fillSel(id,n){ const o=['<option value="">--</option>']; for(let i=0;i<n;i++) o.push('<option value="'+pad(i)+'">'+pad(i)+'</option>'); $(id).innerHTML=o.join(""); }
+function getT(p){ const h=$(p+"H").value, m=$(p+"M").value; if(!h) return ""; return h+":"+(m||"00"); }
+function setT(p,t){ const [h,m]=(t||"").split(":"); $(p+"H").value=h||""; $(p+"M").value=t?(m||"00"):""; }
+["vIn","vOut"].forEach(p=>{
+  fillSel(p+"H",24); fillSel(p+"M",60);
+  $(p+"H").addEventListener("change",()=>{ if($(p+"H").value && !$(p+"M").value) $(p+"M").value="00"; if(!$(p+"H").value) $(p+"M").value=""; saveVisit(); });
+  $(p+"M").addEventListener("change",()=>{ if($(p+"M").value && !$(p+"H").value) $(p+"H").value=pad(new Date().getHours()); saveVisit(); });
+  $(p+"Now").onclick=()=>{ setT(p,nowHM()); saveVisit(); };
+  $(p+"Clr").onclick=()=>{ setT(p,""); saveVisit(); };
+});
 
 /* ---------- Formularz ---------- */
 function setCat(id){
