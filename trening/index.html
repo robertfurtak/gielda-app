@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#e2462c">
+<meta name="theme-color" content="#d63a25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -24,25 +24,25 @@ window.addEventListener("error",function(e){try{var d=document.getElementById("j
 <style>
 /* Layout: jedna kolumna jak aplikacja na telefon — miesiąc, kalendarz, podsumowanie, wybrany dzień; formularz jako arkusz od dołu */
 :root{
-  --bg:#eef1f4; --surface:#ffffff; --surface-2:#f5f7f9; --ink:#141a21; --muted:#5d6874; --line:#d9dfe5;
+  --bg:#f8ecea; --surface:#ffffff; --surface-2:#fbf3f2; --ink:#1f1414; --muted:#6e5c5a; --line:#ecd9d6; --hdr:#d63a25; --hdr-ink:#ffffff;
   --accent:#e2462c; --accent-ink:#ffffff;
   --spd:#1f6fd6; --c1:#0e8f9a; --c2:#c93a83; --c3:#a77c00; --c4:#4f5fd6; --c5:#b5452f; --c6:#5f8a12; --rec:#7a4fd0; --run:#e07a10; --str:#1d9a5b; --oth:#6b7684;
-  --today:#141a21; --sel-bg:#141a21; --sel-ink:#ffffff;
+  --today:#141a21; --sel-bg:#d63a25; --sel-ink:#ffffff;
   --shadow:0 1px 2px rgba(20,26,33,.06),0 6px 20px rgba(20,26,33,.06);
   --font-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --font-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1318; --surface:#181e25; --surface-2:#1f262e; --ink:#e8edf2; --muted:#94a0ad; --line:#2b333d;
+  --bg:#170e0d; --surface:#231816; --surface-2:#2d1f1d; --ink:#f3e9e7; --muted:#b39f9c; --line:#3d2b28; --hdr:#b8301f; --hdr-ink:#ffffff;
   --accent:#ff5a3c; --accent-ink:#ffffff;
   --spd:#4c95f0; --c1:#35c2cc; --c2:#ef6aae; --c3:#e0b229; --c4:#8592f5; --c5:#f07a5f; --c6:#93c43c; --rec:#a07ff0; --run:#f59a3a; --str:#3cc47e; --oth:#8f9aa6;
-  --today:#e8edf2; --sel-bg:#e8edf2; --sel-ink:#0f1318;
+  --today:#e8edf2; --sel-bg:#ff5a3c; --sel-ink:#ffffff;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1318; --surface:#181e25; --surface-2:#1f262e; --ink:#e8edf2; --muted:#94a0ad; --line:#2b333d;
+  --bg:#170e0d; --surface:#231816; --surface-2:#2d1f1d; --ink:#f3e9e7; --muted:#b39f9c; --line:#3d2b28; --hdr:#b8301f; --hdr-ink:#ffffff;
   --accent:#ff5a3c; --accent-ink:#ffffff;
   --spd:#4c95f0; --c1:#35c2cc; --c2:#ef6aae; --c3:#e0b229; --c4:#8592f5; --c5:#f07a5f; --c6:#93c43c; --rec:#a07ff0; --run:#f59a3a; --str:#3cc47e; --oth:#8f9aa6;
-  --today:#e8edf2; --sel-bg:#e8edf2; --sel-ink:#0f1318;
+  --today:#e8edf2; --sel-bg:#ff5a3c; --sel-ink:#ffffff;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -58,12 +58,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
 
-header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.brand{font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--hdr);color:var(--hdr-ink);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.brand{font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--hdr-ink);opacity:.8}
 h1{font-family:var(--font-display);font-weight:700;font-size:34px;line-height:1;margin:2px 0 0;text-transform:capitalize;text-wrap:balance}
 .navbtns{display:flex;gap:6px}
-.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:18px}
-.todaybtn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:13px}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:var(--hdr-ink);display:grid;place-items:center;font-size:18px}
+.todaybtn{height:40px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:var(--hdr-ink);font-weight:600;font-size:13px}
 
 .card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow)}
 .cal{padding:12px 10px 10px}
@@ -223,7 +223,7 @@ textarea{resize:vertical;min-height:60px}
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
     </div>
     <p id="bkMsg" hidden></p>
-    <p>Wersja 5 · 21.11.2026</p>
+    <p>Wersja 6 · 21.11.2026</p>
   </section>
 </div>
 
