@@ -223,7 +223,7 @@ textarea{resize:vertical;min-height:60px}
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
     </div>
     <p id="bkMsg" hidden></p>
-    <p>Wersja 4 · 21.11.2026</p>
+    <p>Wersja 5 · 21.11.2026</p>
   </section>
 </div>
 
@@ -260,6 +260,13 @@ textarea{resize:vertical;min-height:60px}
           <div class="unit"><input id="fH" type="number" inputmode="numeric" min="0" placeholder="0" aria-label="Godziny"><span>h</span></div>
           <div class="unit"><input id="fM" type="number" inputmode="numeric" min="0" max="59" placeholder="0" aria-label="Minuty"><span>min</span></div>
           <div class="unit"><input id="fS" type="number" inputmode="numeric" min="0" max="59" placeholder="0" aria-label="Sekundy"><span>s</span></div>
+        </div>
+      </div>
+      <div class="field" id="paceBox" hidden><label>Tempo i prędkość (bieżnia)</label>
+        <div class="row r3">
+          <div class="unit"><input id="fPm" type="number" inputmode="numeric" min="0" placeholder="0" aria-label="Tempo – minuty na km"><span>min</span></div>
+          <div class="unit"><input id="fPs" type="number" inputmode="numeric" min="0" max="59" placeholder="0" aria-label="Tempo – sekundy na km"><span>s/km</span></div>
+          <div class="unit"><input id="fSpd" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0" aria-label="Prędkość km/h"><span>km/h</span></div>
         </div>
       </div>
       <div class="derived" id="derived"></div>
@@ -461,8 +468,9 @@ function renderDay(map){
       if(e.km) chips+='<span class="chip">'+fmtNum(+e.km,2)+'<em>km</em></span>';
       if(e.sec) chips+='<span class="chip">'+fmtDur(e.sec)+'<em>czas</em></span>';
       if(e.kcal) chips+='<span class="chip">'+Math.round(e.kcal)+'<em>kcal</em></span>';
-      if(e.km && e.sec) chips+='<span class="chip">'+fmtNum(e.km/(e.sec/3600),1)+'<em>km/h</em></span>';
-      if(e.km && e.sec && e.cat==="run") chips+='<span class="chip">'+fmtDur(e.sec/e.km)+'<em>/km</em></span>';
+      const pace = e.pace || (e.km && e.sec ? e.sec/e.km : 0);
+      if(pace) chips+='<span class="chip">'+fmtNum(3600/pace,1)+'<em>km/h</em></span>';
+      if(pace && e.cat==="run") chips+='<span class="chip">'+fmtDur(pace)+'<em>/km tempo</em></span>';
     }
     b.innerHTML='<span class="stripe" style="background:var('+c.color+')"></span><span style="min-width:0"><span class="c">'+esc(c.name)+'</span><div class="t">'+esc(e.name||c.name)+'</div><div class="chips">'+chips+'</div>'+(e.note?'<div class="note">'+esc(e.note)+'</div>':'')+'</span><span class="more">Edytuj ›</span>';
     b.onclick=()=>openSheet(e);
@@ -501,6 +509,7 @@ function setCat(id){
   $("delCat").hidden = !(c.custom && !editing);
   $("tabs").querySelectorAll(".tab").forEach(t=>{ const on=t.dataset.id===id; t.setAttribute("aria-pressed", on?"true":"false"); if(on) try{ t.scrollIntoView({block:"nearest",inline:"nearest"}); }catch(e){} });
   $("cardioBox").hidden = c.type!=="cardio";
+  $("paceBox").hidden = id!=="run";
   $("strengthBox").hidden = c.type!=="strength";
   $("fName").placeholder = c.names[0];
   const used=[...new Set(entries.filter(e=>e.cat===id).map(e=>e.name).filter(Boolean))];
@@ -533,16 +542,31 @@ function addSetRow(r,kg){
 }
 
 function readSec(){ return (+$("fH").value||0)*3600+(+$("fM").value||0)*60+(+$("fS").value||0); }
+function readPace(){ if(formCat!=="run") return 0; return (+$("fPm").value||0)*60+(+$("fPs").value||0); }
+function setPaceFields(p){ $("fPm").value=p?Math.floor(p/60):""; $("fPs").value=p?Math.round(p%60):""; }
+function resolveCardio(){
+  let km=+$("fKm").value||0, sec=readSec(); const pace=readPace();
+  let fill="";
+  if(pace && sec && !km){ km=Math.round(sec/pace*100)/100; fill="dystans"; }
+  else if(pace && km && !sec){ sec=Math.round(km*pace); fill="czas"; }
+  return {km,sec,pace: pace || (km&&sec ? sec/km : 0), fill};
+}
 function updDerived(){
-  const km=+$("fKm").value||0, sec=readSec();
+  const R=resolveCardio();
   let t="";
-  if(km && sec){ t="Średnia prędkość "+fmtNum(km/(sec/3600),1)+" km/h"; if(formCat==="run") t+=" · tempo "+fmtDur(sec/km)+" /km"; }
+  if(R.pace && (R.km||R.sec||formCat==="run")){
+    t="Prędkość "+fmtNum(3600/R.pace,1)+" km/h"; if(formCat==="run") t+=" · tempo "+fmtDur(R.pace)+" /km";
+    if(R.fill==="dystans") t+=" · dystans ≈ "+fmtNum(R.km,2)+" km";
+    if(R.fill==="czas") t+=" · czas ≈ "+fmtDur(R.sec);
+  }
   $("derived").textContent=t;
   const sets=[...$("sets").children].map(r=>({r:+r.querySelector(".r").value||0,kg:+r.querySelector(".kg").value||0}));
   const vol=sets.reduce((a,s)=>a+s.r*s.kg,0);
   $("derived2").textContent = sets.length ? sets.length+" serie · "+sets.reduce((a,s)=>a+s.r,0)+" powtórzeń"+(vol?" · objętość "+fmtNum(vol,0)+" kg":"") : "";
 }
 ["fKm","fH","fM","fS"].forEach(id=>$(id).addEventListener("input",updDerived));
+["fPm","fPs"].forEach(id=>$(id).addEventListener("input",()=>{ const p=readPace(); $("fSpd").value=p?Math.round(36000/p)/10:""; updDerived(); }));
+$("fSpd").addEventListener("input",()=>{ const v=+$("fSpd").value||0; setPaceFields(v?3600/v:0); updDerived(); });
 
 function openSheet(e){
   editing=e||null;
@@ -555,6 +579,7 @@ function openSheet(e){
   const s=e?e.sec||0:0;
   $("fH").value=s?Math.floor(s/3600)||"":""; $("fM").value=s?Math.floor(s%3600/60)||"":""; $("fS").value=s?s%60||"":"";
   $("fNote").value=e?e.note||"":"";
+  const ep=e&&e.pace?e.pace:0; setPaceFields(ep); $("fSpd").value=ep?Math.round(36000/ep)/10:"";
   if(e && e.sets) e.sets.forEach(x=>addSetRow(x.r,x.kg));
   $("delCat").textContent="Usuń tę zakładkę"; $("delCat").dataset.armed="";
   setCat(e?e.cat:formCat);
@@ -614,8 +639,10 @@ $("saveBtn").onclick=async()=>{
     e.kcal=+$("fKcal2").value||0; e.km=0; e.sec=0;
     if(!e.sets.length){ return showErr("Wpisz przynajmniej jedną serię (powtórzenia lub ciężar)."); }
   } else {
-    e.km=+$("fKm").value||0; e.kcal=+$("fKcal").value||0; e.sec=readSec(); e.sets=[];
-    if(!e.km && !e.kcal && !e.sec){ return showErr("Wpisz dystans, kalorie albo czas."); }
+    const R=resolveCardio();
+    e.km=R.km; e.kcal=+$("fKcal").value||0; e.sec=R.sec; e.sets=[];
+    e.pace = formCat==="run" && readPace() ? readPace() : 0;
+    if(!e.km && !e.kcal && !e.sec && !e.pace){ return showErr("Wpisz dystans, kalorie, czas albo tempo."); }
   }
   $("saveBtn").disabled=true;
   try{ await store.save(e); closeSheet(); }
