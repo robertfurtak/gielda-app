@@ -159,7 +159,7 @@ textarea{resize:vertical;min-height:60px}
 .ghost{border:1.5px dashed var(--line);background:transparent;border-radius:12px;padding:10px;font-weight:600;color:var(--muted)}
 .quick{display:flex;flex-wrap:wrap;gap:6px}
 .quick button{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:5px 10px;font-size:13px}
-.actions{display:flex;gap:10px;align-items:center}
+.actions{display:flex;gap:10px;align-items:center;position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom,0px));background:var(--surface);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));z-index:2}
 .primary{flex:1;height:50px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:16px}
 .danger{height:50px;padding:0 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--accent);font-weight:600}
 .err{color:var(--accent);font-size:13px}
@@ -219,6 +219,7 @@ textarea{resize:vertical;min-height:60px}
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
     </div>
     <p id="bkMsg" hidden></p>
+    <p>Wersja 3 · 21.11.2026</p>
   </section>
 </div>
 
@@ -650,7 +651,11 @@ $("bkFile").onchange=async()=>{
   $("bkFile").value="";
 };
 
-if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{}); }
+if("serviceWorker" in navigator){
+  const had=!!navigator.serviceWorker.controller; let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(had && !reloaded){ reloaded=true; location.reload(); } });
+  navigator.serviceWorker.register("sw.js",{scope:"./",updateViaCache:"none"}).then(r=>r.update()).catch(()=>{});
+}
 try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
 init();
 })();

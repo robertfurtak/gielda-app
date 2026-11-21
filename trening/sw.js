@@ -1,4 +1,4 @@
-const CACHE = 'trening-v2';
+const CACHE = 'trening-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -11,7 +11,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (url.origin === location.origin) {
     // aplikacja: najpierw sieć (żeby dostawać poprawki), bez sieci – kopia z pamięci
-    e.respondWith(fetch(e.request).then(r => {
+    e.respondWith(fetch(e.request, {cache: 'no-cache'}).then(r => {
       if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return r;
     }).catch(() => caches.match(e.request, {ignoreSearch: true}).then(r => r || caches.match('./index.html'))));
