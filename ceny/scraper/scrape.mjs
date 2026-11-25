@@ -34,11 +34,14 @@ async function frisco(q) {
   });
 }
 
+let auchanBlocked = 0;
 async function auchan(q) {
   const h = await get(`https://zakupy.auchan.pl/search?q=${encodeURIComponent(q)}`);
   if (!h.includes('product-card-container')) {
     const title = (h.match(/<title>([^<]*)/) || [])[1];
     console.log(`  auchan: brak listy produktów (${h.length} B, tytuł: ${title})`);
+    // Auchan pokazuje stronę ochrony przed botami – nie odpytujemy go dalej w tym przebiegu
+    if (h.length < 10000 && ++auchanBlocked >= 3) delete STORES.auchan;
   }
   return h.split('class="product-card-container').slice(1).map(t => {
     const n = t.match(/data-test="fop-title"[^>]*>([^<]+)</);
@@ -55,7 +58,7 @@ async function auchan(q) {
   }).filter(Boolean);
 }
 
-const STORES = { frisco, auchan };
+var STORES = { frisco, auchan };
 const terms = fs.readFileSync(new URL('./produkty.txt', import.meta.url), 'utf8')
   .split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
 const outFile = process.argv[2] || 'ceny.json';
@@ -72,7 +75,7 @@ for (const q of terms) {
       result.err[name] = (result.err[name] || 0) + 1;
       console.log(`! ${name} "${q}": ${e.message}`);
     }
-    await sleep(name === 'auchan' ? 6000 : 700); // Auchan: spokojne tempo, żeby nie obciążać sklepu
+    await sleep(name === 'auchan' ? 3000 : 700); // Auchan: spokojne tempo, żeby nie obciążać sklepu
   }
   console.log(q, result.q[q].length);
 }
