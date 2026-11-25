@@ -36,6 +36,10 @@ async function frisco(q) {
 
 async function auchan(q) {
   const h = await get(`https://zakupy.auchan.pl/search?q=${encodeURIComponent(q)}`);
+  if (!h.includes('product-card-container')) {
+    const title = (h.match(/<title>([^<]*)/) || [])[1];
+    console.log(`  auchan: brak listy produktów (${h.length} B, tytuł: ${title})`);
+  }
   return h.split('class="product-card-container').slice(1).map(t => {
     const n = t.match(/data-test="fop-title"[^>]*>([^<]+)</);
     const p = t.match(/data-test="fop-price"[^>]*>([^<]+)</);
@@ -68,7 +72,7 @@ for (const q of terms) {
       result.err[name] = (result.err[name] || 0) + 1;
       console.log(`! ${name} "${q}": ${e.message}`);
     }
-    await sleep(700);
+    await sleep(name === 'auchan' ? 6000 : 700); // Auchan: spokojne tempo, żeby nie obciążać sklepu
   }
   console.log(q, result.q[q].length);
 }
