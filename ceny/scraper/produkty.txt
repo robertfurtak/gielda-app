@@ -1,0 +1,142 @@
+# Lista fraz, dla których co noc pobierane są ceny (jedna fraza w linii)
+# Nabiał
+mleko
+mleko bez laktozy
+masło
+margaryna
+śmietana
+jogurt naturalny
+jogurt grecki
+jogurt owocowy
+kefir
+maślanka
+serek wiejski
+twaróg
+ser żółty
+ser gouda
+ser mozzarella
+ser feta
+parmezan
+serek homogenizowany
+jajka
+# Pieczywo i zboża
+chleb
+bułki
+chleb tostowy
+mąka pszenna
+cukier
+sól
+ryż
+kasza gryczana
+kasza jaglana
+płatki owsiane
+musli
+makaron spaghetti
+makaron penne
+makaron
+kuskus
+# Mięso i ryby
+pierś z kurczaka
+udko kurczaka
+filet z indyka
+mięso mielone
+schab
+karkówka
+boczek
+szynka
+kiełbasa
+parówki
+salami
+łosoś
+tuńczyk w puszce
+śledź
+paluszki rybne
+# Warzywa i owoce
+ziemniaki
+pomidory
+ogórki
+papryka
+cebula
+czosnek
+marchew
+brokuł
+kalafior
+sałata
+pieczarki
+cukinia
+awokado
+banany
+jabłka
+pomarańcze
+mandarynki
+cytryny
+winogrona
+truskawki
+borówki
+# Mrożonki i przetwory
+mrożone warzywa
+frytki mrożone
+pizza mrożona
+lody
+pomidory w puszce
+koncentrat pomidorowy
+passata
+kukurydza konserwowa
+fasola konserwowa
+groszek konserwowy
+ogórki kiszone
+dżem
+miód
+nutella
+masło orzechowe
+ketchup
+majonez
+musztarda
+olej rzepakowy
+oliwa z oliwek
+ocet
+# Napoje
+woda mineralna
+sok pomarańczowy
+sok jabłkowy
+coca cola
+pepsi
+napój izotoniczny
+kawa mielona
+kawa ziarnista
+kawa rozpuszczalna
+herbata czarna
+herbata zielona
+kakao
+piwo
+# Przekąski i słodycze
+czekolada
+baton
+ciastka
+chipsy
+paluszki
+orzechy
+migdały
+rodzynki
+płatki śniadaniowe
+odżywka białkowa
+baton proteinowy
+# Chemia i higiena
+papier toaletowy
+ręcznik papierowy
+chusteczki
+płyn do naczyń
+tabletki do zmywarki
+proszek do prania
+kapsułki do prania
+płyn do płukania
+mydło
+żel pod prysznic
+szampon
+pasta do zębów
+dezodorant
+worki na śmieci
+folia aluminiowa
+# Dla zwierząt
+karma dla kota
+karma dla psa

@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ceny w marketach</title>
+<meta name="description" content="Najniższe ceny produktów w sklepach internetowych Frisco i Auchan (Warszawa).">
+<meta name="theme-color" content="#c2410c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --bg:#fbf7f2; --card:#fff; --ink:#1f1a16; --mute:#6b625a; --line:#e8dfd5;
+  --acc:#c2410c; --acc2:#9a3412; --accbg:#fff1e6; --good:#15803d; --goodbg:#e7f6ec;
+  --frisco:#6d28d9; --auchan:#dc2626; --carrefour:#1d4ed8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#16120f; --card:#211b17; --ink:#f4ede6; --mute:#b3a79b; --line:#3a312a;
+    --acc:#fb923c; --acc2:#fdba74; --accbg:#3a2416; --good:#4ade80; --goodbg:#16301f;
+    --frisco:#a78bfa; --auchan:#f87171; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+header{background:var(--acc);color:#fff;padding:12px 16px 0;position:sticky;top:0;z-index:5}
+@media (prefers-color-scheme: dark){header{background:#7c2d12}}
+h1{margin:0;font-size:1.25rem;display:flex;align-items:center;gap:10px}
+h1 img{width:32px;height:32px;border-radius:8px}
+.tabs{display:flex;gap:4px;margin-top:10px}
+.tabs button{flex:1;border:0;background:transparent;color:#ffe4d1;font:inherit;font-weight:600;padding:10px 4px 12px;border-bottom:4px solid transparent;cursor:pointer}
+.tabs button.on{color:#fff;border-bottom-color:#fff}
+main{max-width:760px;margin:0 auto;padding:14px 16px 120px}
+.row{display:flex;gap:8px;align-items:center}
+input[type=search],input[type=text]{flex:1;min-width:0;font:inherit;font-size:1.05rem;padding:13px 14px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+input:focus{outline:none;border-color:var(--acc)}
+.btn{border:0;border-radius:12px;background:var(--acc);color:#fff;font:inherit;font-weight:700;padding:13px 16px;cursor:pointer;white-space:nowrap}
+.btn.sec{background:var(--accbg);color:var(--acc2)}
+.btn.small{padding:8px 12px;font-size:.95rem}
+.seg{display:flex;background:var(--card);border:2px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0 4px}
+.seg button{flex:1;border:0;background:transparent;color:var(--mute);font:inherit;font-size:.95rem;padding:9px 4px;cursor:pointer}
+.seg button.on{background:var(--accbg);color:var(--acc2);font-weight:700}
+.meta{color:var(--mute);font-size:.88rem;margin:8px 2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.prod{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.prod:first-child{border-top:0}
+.prod .info{flex:1;min-width:0}
+.prod .name{font-weight:600;font-size:.97em;word-wrap:break-word}
+.prod .name a{color:inherit;text-decoration:none}
+.prod .sub{color:var(--mute);font-size:.88rem}
+.prod .pr{text-align:right;white-space:nowrap}
+.price{font-size:1.2rem;font-weight:800}
+.old{color:var(--mute);text-decoration:line-through;font-size:.85rem}
+.store{display:inline-block;font-size:.75rem;font-weight:800;letter-spacing:.03em;color:#fff;border-radius:6px;padding:2px 7px;margin-right:6px;vertical-align:2px}
+.s-frisco{background:var(--frisco)} .s-auchan{background:var(--auchan)} .s-carrefour{background:var(--carrefour)}
+.best .prod{border-top:0}
+.inlist .add{display:none}
+.best{background:var(--goodbg);border-radius:10px;padding:10px;margin:0 -6px}
+.badge{display:inline-block;background:var(--good);color:#fff;font-size:.75rem;font-weight:700;border-radius:6px;padding:2px 7px;margin-bottom:3px}
+.add{flex:none;width:44px;height:44px;border-radius:50%;border:2px solid var(--acc);background:transparent;color:var(--acc);font-size:1.5rem;line-height:1;cursor:pointer}
+.add.done{background:var(--acc);color:#fff}
+.item-head{display:flex;align-items:center;gap:8px}
+.item-head .q{flex:1;font-weight:700;font-size:1.08rem;min-width:0;word-wrap:break-word}
+.qty{display:flex;align-items:center;gap:2px}
+.qty button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1.2rem;cursor:pointer}
+.qty span{min-width:26px;text-align:center;font-weight:700}
+.x{border:0;background:transparent;color:var(--mute);font-size:1.4rem;cursor:pointer;padding:4px 6px}
+.stores{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:.9rem;color:var(--mute)}
+.more{border:0;background:transparent;color:var(--acc);font:inherit;font-size:.92rem;font-weight:600;padding:8px 0 0;cursor:pointer}
+.pin{font-size:.8rem;color:var(--acc2);font-weight:700}
+.sum{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:6}
+.sum .in{max-width:760px;margin:0 auto}
+.sum .tot{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sum .tot b{font-size:1.3rem;color:var(--good)}
+.sum .alt{color:var(--mute);font-size:.9rem;margin-top:2px}
+.empty{text-align:center;color:var(--mute);padding:30px 10px}
+.note{background:var(--accbg);color:var(--acc2);border-radius:12px;padding:10px 12px;font-size:.92rem;margin:10px 0}
+.foot{color:var(--mute);font-size:.8rem;text-align:center;margin-top:24px}
+.hide{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:7px 12px;font:inherit;font-size:.92rem;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1><img src="icon-192.png" alt="">Ceny w marketach</h1>
+  <div class="tabs">
+    <button id="t-lista" class="on" onclick="tab('lista')">Lista zakupów</button>
+    <button id="t-szukaj" onclick="tab('szukaj')">Szukaj</button>
+  </div>
+</header>
+
+<main>
+  <div id="msg"></div>
+
+  <section id="v-lista">
+    <form class="row" onsubmit="addItem(event)">
+      <input type="text" id="newItem" placeholder="Dodaj produkt, np. masło" autocomplete="off" enterkeyhint="done">
+      <button class="btn">Dodaj</button>
+    </form>
+    <div class="seg" id="segL">
+      <button data-m="p" onclick="setMode('p')">Najtańsza cena</button>
+      <button data-m="u" onclick="setMode('u')">Najtaniej za kg / l</button>
+    </div>
+    <div id="lista"></div>
+  </section>
+
+  <section id="v-szukaj" class="hide">
+    <form class="row" onsubmit="event.preventDefault();doSearch()">
+      <input type="search" id="q" placeholder="Wpisz produkt, np. ser gouda" autocomplete="off" enterkeyhint="search" oninput="doSearch()">
+    </form>
+    <div class="seg" id="segS">
+      <button data-m="p" onclick="setMode('p')">Najtańsza cena</button>
+      <button data-m="u" onclick="setMode('u')">Najtaniej za kg / l</button>
+    </div>
+    <div id="wyniki"></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</main>
+
+<div class="sum hide" id="sum"><div class="in" id="sumIn"></div></div>
+
+<script>
+const VERSION = 1;
+const DATA_URLS = [
+  'https://raw.githubusercontent.com/robertfurtak/gielda-app/main/ceny/ceny.json',
+  './ceny.json'
+];
+const STORE_NAMES = { frisco: 'Frisco', auchan: 'Auchan', carrefour: 'Carrefour' };
+const LS = 'ceny-lista-v1', LSM = 'ceny-tryb';
+
+let DATA = null, ITEMS = [], mode = 'p';
+let list = [];
+try { list = JSON.parse(localStorage.getItem(LS)) || []; } catch (e) { list = []; }
+try { mode = localStorage.getItem(LSM) || 'p'; } catch (e) {}
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(list)); } catch (e) {} };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const zl = v => v == null ? '' : v.toFixed(2).replace('.', ',') + ' zł';
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l')
+  .replace(/[^a-z0-9%,.]+/g, ' ').trim();
+
+// prosty "rdzeń" słowa, żeby "jajka" pasowało do "jaja", a "pomidory" do "pomidor"
+const stem = w => w.length > 4 ? w.slice(0, Math.max(3, w.length - 2)) : w;
+
+function matches(q) {
+  const words = norm(q).split(' ').filter(Boolean).map(stem);
+  if (!words.length || !ITEMS.length) return [];
+  return ITEMS.filter(it => words.every(w => it.k.includes(' ' + w) || it.k.startsWith(w)));
+}
+const unitKey = it => it.up && it.uu ? it.uu.toLowerCase().replace('.', '') : '';
+function sortItems(arr) {
+  if (mode === 'u') {
+    return arr.slice().sort((a, b) => (a.up == null) - (b.up == null) || (a.up || 0) - (b.up || 0) || a.p - b.p);
+  }
+  return arr.slice().sort((a, b) => a.p - b.p);
+}
+
+async function load() {
+  for (const u of DATA_URLS) {
+    try {
+      const r = await fetch(u + '?t=' + Math.floor(Date.now() / 600000), { cache: 'no-cache' });
+      if (!r.ok) continue;
+      DATA = await r.json();
+      try { localStorage.setItem('ceny-dane', JSON.stringify(DATA)); } catch (e) {}
+      break;
+    } catch (e) {}
+  }
+  if (!DATA) { try { DATA = JSON.parse(localStorage.getItem('ceny-dane')); } catch (e) {} }
+  if (!DATA) {
+    $('msg').innerHTML = '<div class="note">Nie udało się pobrać cen. Sprawdź internet i otwórz aplikację ponownie.</div>';
+    DATA = { q: {}, t: null };
+  }
+  const seen = new Set();
+  ITEMS = [];
+  for (const arr of Object.values(DATA.q || {})) for (const it of arr) {
+    const id = it.s + '|' + (it.u || it.n);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    it.id = id;
+    it.k = ' ' + norm(it.n);
+    ITEMS.push(it);
+  }
+  const t = DATA.t ? new Date(DATA.t) : null;
+  const stores = [...new Set(ITEMS.map(i => STORE_NAMES[i.s] || i.s))].join(' i ');
+  $('foot').innerHTML = (t ? `Ceny z ${t.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' })}, godz. ${t.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}. ` : '') +
+    `Źródła: sklepy internetowe ${esc(stores || 'Frisco i Auchan')} (Warszawa). ${ITEMS.length} produktów.<br>Ceny w sklepach stacjonarnych mogą się różnić. Wersja ${VERSION}`;
+  render();
+}
+
+function storeTag(s) { return `<span class="store s-${esc(s)}">${esc(STORE_NAMES[s] || s)}</span>`; }
+function unitTxt(it) { return it.up ? `${zl(it.up)}/${esc(it.uu)}` : ''; }
+
+function prodRow(it, extra = '') {
+  const inList = list.some(l => l.pin === it.id);
+  return `<div class="prod">
+    <div class="info">
+      <div class="name">${storeTag(it.s)}<a href="${esc(it.u)}" target="_blank" rel="noopener">${esc(it.n)}</a></div>
+      <div class="sub">${esc(it.z || '')}${it.z && it.up ? ' · ' : ''}${unitTxt(it)}</div>
+      ${extra}
+    </div>
+    <div class="pr"><div class="price">${zl(it.p)}</div>${it.o ? `<div class="old">${zl(it.o)}</div>` : ''}</div>
+    <button class="add ${inList ? 'done' : ''}" title="Dodaj do listy" onclick="addPinned('${esc(it.id)}', this)">${inList ? '✓' : '+'}</button>
+  </div>`;
+}
+
+// ------- Szukaj -------
+let searchTimer;
+function doSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderSearch, 150);
+}
+function renderSearch() {
+  const q = $('q').value.trim();
+  const box = $('wyniki');
+  if (!q) {
+    const sug = Object.keys(DATA?.q || {}).sort(() => Math.random() - .5).slice(0, 10);
+    box.innerHTML = `<div class="meta">Przykłady:</div><div class="chips">${sug.map(s => `<button onclick="$('q').value='${esc(s)}';renderSearch()">${esc(s)}</button>`).join('')}</div>`;
+    return;
+  }
+  const res = sortItems(matches(q));
+  if (!res.length) {
+    box.innerHTML = `<div class="empty">Brak „${esc(q)}” w bazie cen.<br>Spróbuj krótszej nazwy (np. „ser” zamiast „ser żółty plastry”).</div>`;
+    return;
+  }
+  const shown = res.slice(0, 60);
+  box.innerHTML = `<div class="meta">${res.length} wyników${res.length > 60 ? ', pokazuję 60 najtańszych' : ''}</div><div class="card">` +
+    shown.map((it, i) => i === 0 ? `<div class="best"><span class="badge">Najtaniej</span>${prodRow(it)}</div>` : prodRow(it)).join('') + '</div>';
+}
+
+// ------- Lista -------
+function addItem(e) {
+  e.preventDefault();
+  const v = $('newItem').value.trim();
+  if (!v) return;
+  list.push({ q: v, n: 1 });
+  $('newItem').value = '';
+  save(); renderList();
+}
+function addPinned(id, btn) {
+  const i = list.findIndex(l => l.pin === id);
+  if (i >= 0) { list.splice(i, 1); }
+  else {
+    const it = ITEMS.find(x => x.id === id);
+    if (!it) return;
+    list.push({ q: it.n, n: 1, pin: id });
+  }
+  save();
+  if (btn) { const on = i < 0; btn.classList.toggle('done', on); btn.textContent = on ? '✓' : '+'; }
+  renderList();
+}
+function chg(i, d) { list[i].n = Math.max(1, (list[i].n || 1) + d); save(); renderList(); }
+function del(i) { list.splice(i, 1); save(); renderList(); }
+function choose(i, id) { list[i].pin = id; list[i].open = false; save(); renderList(); }
+function unpin(i) { delete list[i].pin; save(); renderList(); }
+function toggle(i) { list[i].open = !list[i].open; renderList(); }
+
+function bestFor(entry) {
+  if (entry.pin) {
+    const it = ITEMS.find(x => x.id === entry.pin);
+    return { best: it, all: it ? [it] : [], perStore: it ? { [it.s]: it } : {} };
+  }
+  const all = sortItems(matches(entry.q));
+  const perStore = {};
+  for (const it of all) if (!perStore[it.s]) perStore[it.s] = it;
+  return { best: all[0], all, perStore };
+}
+
+function renderList() {
+  const box = $('lista');
+  if (!list.length) {
+    box.innerHTML = `<div class="empty">Lista jest pusta.<br>Wpisz produkt powyżej albo dodaj go z zakładki „Szukaj” przyciskiem +.</div>`;
+    $('sum').classList.add('hide');
+    return;
+  }
+  const storeIds = [...new Set(ITEMS.map(i => i.s))];
+  const totals = Object.fromEntries(storeIds.map(s => [s, { sum: 0, miss: 0 }]));
+  let mixed = 0, mixedMiss = 0;
+  box.innerHTML = list.map((e, i) => {
+    const r = bestFor(e), n = e.n || 1;
+    for (const s of storeIds) {
+      if (r.perStore[s]) totals[s].sum += r.perStore[s].p * n; else totals[s].miss++;
+    }
+    if (r.best) mixed += r.best.p * n; else mixedMiss++;
+    let body;
+    if (!r.best) {
+      body = `<div class="sub" style="margin-top:6px">Nie znaleziono w bazie. Spróbuj innej, krótszej nazwy.</div>`;
+    } else {
+      body = `<div class="best inlist" style="margin-top:6px">${prodRow(r.best, e.pin ? `<div class="pin"><a href="#" onclick="unpin(${i});return false">Szukaj najtańszego podobnego</a></div>` : '')}</div>`;
+      if (!e.pin) {
+        const others = storeIds.filter(s => r.perStore[s] && r.perStore[s] !== r.best)
+          .map(s => `<span>${STORE_NAMES[s] || s}: <b>${zl(r.perStore[s].p)}</b></span>`);
+        const missing = storeIds.filter(s => !r.perStore[s]).map(s => `<span>${STORE_NAMES[s] || s}: brak</span>`);
+        if (others.length || missing.length) body += `<div class="stores">${others.concat(missing).join('')}</div>`;
+        if (r.all.length > 1) {
+          body += `<button class="more" onclick="toggle(${i})">${e.open ? 'Zwiń' : `Pokaż inne (${r.all.length - 1}) i wybierz konkretny`}</button>`;
+          if (e.open) body += `<div>` + r.all.slice(1, 25).map(it => `<div onclick="choose(${i}, '${esc(it.id)}')" style="cursor:pointer">${prodRow(it).replace(/<button class="add[\s\S]*?<\/button>/, '<button class="btn small sec">Wybierz</button>')}</div>`).join('') + `</div>`;
+        }
+      }
+    }
+    return `<div class="card">
+      <div class="item-head">
+        <div class="q">${e.pin ? 'Wybrany produkt' : esc(e.q)}</div>
+        <div class="qty"><button onclick="chg(${i},-1)">−</button><span>${n}</span><button onclick="chg(${i},1)">+</button></div>
+        <button class="x" title="Usuń" onclick="del(${i})">✕</button>
+      </div>${body}</div>`;
+  }).join('') + `<div style="text-align:center;margin-top:16px"><button class="btn sec small" onclick="if(confirmClear())renderList()">Wyczyść listę</button></div>`;
+
+  const alts = storeIds.map(s => `${STORE_NAMES[s] || s}: ${zl(totals[s].sum)}${totals[s].miss ? ` (bez ${totals[s].miss} poz.)` : ''}`);
+  $('sumIn').innerHTML = `<div class="tot"><span>Najtaniej razem${mixedMiss ? ` (bez ${mixedMiss} poz.)` : ''}</span><b>${zl(mixed)}</b></div>
+    <div class="alt">Wszystko w jednym sklepie: ${alts.join(' · ')}</div>`;
+  $('sum').classList.toggle('hide', $('v-lista').classList.contains('hide'));
+}
+let clearArm = 0;
+function confirmClear() {
+  // dwa kliknięcia w ciągu 3 s zamiast okna potwierdzenia
+  if (Date.now() - clearArm < 3000) { list = []; save(); return true; }
+  clearArm = Date.now();
+  $('msg').innerHTML = '<div class="note">Kliknij „Wyczyść listę” jeszcze raz, żeby usunąć wszystkie produkty.</div>';
+  setTimeout(() => { $('msg').innerHTML = ''; }, 3000);
+  return false;
+}
+
+// ------- Ogólne -------
+function setMode(m) {
+  mode = m;
+  try { localStorage.setItem(LSM, m); } catch (e) {}
+  render();
+}
+function tab(t) {
+  for (const x of ['lista', 'szukaj']) {
+    $('v-' + x).classList.toggle('hide', x !== t);
+    $('t-' + x).classList.toggle('on', x === t);
+  }
+  $('sum').classList.toggle('hide', t !== 'lista' || !list.length);
+  if (t === 'szukaj') { renderSearch(); }
+  else renderList();
+  window.scrollTo(0, 0);
+}
+function render() {
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  renderList();
+  if (!$('v-szukaj').classList.contains('hide')) renderSearch();
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+render();
+load();
+</script>
+</body>
+</html>
